@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Office Rush 3D — Coffee &amp; Deadlines</title>
+    <link rel="stylesheet" href="/src/styles/main.css" />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game-canvas"></canvas>
+
+      <!-- Top HUD -->
+      <header id="hud" class="hud hidden">
+        <div class="hud-left">
+          <div class="stat-pill">
+            <span class="label">ĐIỂM</span>
+            <span id="hud-score" class="value">0</span>
+          </div>
+          <div class="stat-pill">
+            <span class="label">COMBO</span>
+            <span id="hud-combo" class="value">x1</span>
+          </div>
+          <div class="stat-pill sanity-pill">
+            <span class="label">TINH THẦN</span>
+            <span id="hud-sanity" class="value">❤️❤️❤️</span>
+          </div>
+        </div>
+
+        <div class="hud-center">
+          <div class="caffeine-wrap">
+            <span class="caffeine-label">☕ CAFFEINE FLOW</span>
+            <div class="caffeine-bar">
+              <div id="hud-caffeine-fill" class="caffeine-fill"></div>
+            </div>
+          </div>
+          <div id="hud-event" class="hud-event"></div>
+        </div>
+
+        <div class="hud-right">
+          <button id="btn-mute" class="icon-btn" title="Tắt/Bật âm thanh (M)">🔊</button>
+          <button id="btn-pause" class="icon-btn" title="Tạm dừng (P)">⏸️</button>
+          <button id="btn-boss" class="boss-btn" title="Boss Key: Mở Excel giả (B)">📊 Boss Key [B]</button>
+        </div>
+      </header>
+
+      <!-- Start Menu -->
+      <section id="menu-modal" class="modal">
+        <div class="card">
+          <div class="badge">THREE.JS 3D OFFICE ARCADE</div>
+          <h1>Office Rush 3D</h1>
+          <p class="subtitle">Lướt ghế xoay né Sếp, gom Cà phê đá, sống sót tới 5h chiều!</p>
+
+          <div class="difficulty-grid" id="difficulty-list">
+            <button class="diff-btn" data-diff="chill">
+              <strong>☕ Chill Break</strong>
+              <span>Nhẹ nhàng giờ nghỉ trưa (4 ❤️)</span>
+            </button>
+            <button class="diff-btn active" data-diff="crunch">
+              <strong>🔥 Crunch Time</strong>
+              <span>Chạy deadline tiêu chuẩn (3 ❤️)</span>
+            </button>
+            <button class="diff-btn" data-diff="friday">
+              <strong>🚀 Friday 5 PM</strong>
+              <span>Trốn Sếp về đúng giờ (3 ❤️)</span>
+            </button>
+          </div>
+
+          <button id="btn-start" class="primary-btn">Bắt đầu lướt ghế [Enter / Space]</button>
+
+          <div class="controls-hint">
+            <span>⬅️ ➡️ / A D: Đổi làn</span>
+            <span>⬆️ / W / Space: Nhảy</span>
+            <span>B: Boss Key (Fake Excel)</span>
+            <span>M: Tắt tiếng</span>
+          </div>
+
+          <div id="menu-best" class="best-stats"></div>
+        </div>
+      </section>
+
+      <!-- Pause Modal -->
+      <section id="pause-modal" class="modal hidden">
+        <div class="card compact">
+          <h2>Tạm nghỉ uống nước</h2>
+          <p class="subtitle">Deadline vẫn đang đợi bạn phía trước...</p>
+          <div class="btn-row">
+            <button id="btn-resume" class="primary-btn">Chơi tiếp [P]</button>
+            <button id="btn-quit" class="secondary-btn">Về Menu</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Game Over Modal -->
+      <section id="gameover-modal" class="modal hidden">
+        <div class="card">
+          <div class="badge danger">HẾT PIN CÔNG SỞ</div>
+          <h2 id="go-rank">Thực tập sinh lạc lối</h2>
+          <div class="go-stats">
+            <div><span>Điểm số</span><strong id="go-score">0</strong></div>
+            <div><span>Kỷ lục</span><strong id="go-best">0</strong></div>
+            <div><span>Quãng đường</span><strong id="go-dist">0 m</strong></div>
+            <div><span>Cà phê đã uống</span><strong id="go-coffee">0 ☕</strong></div>
+            <div><span>KPI đã duyệt</span><strong id="go-approval">0 📄</strong></div>
+            <div><span>Max Combo</span><strong id="go-combo">0</strong></div>
+          </div>
+          <div class="btn-row">
+            <button id="btn-retry" class="primary-btn">Chạy lại ngay [Space]</button>
+            <button id="btn-go-menu" class="secondary-btn">Đổi chế độ</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Boss Key: Fake Excel Spreadsheet Overlay -->
+      <section id="boss-overlay" class="boss-overlay hidden" aria-hidden="true">
+        <div class="excel-topbar">
+          <div class="excel-title">📊 Q4_Budget_KPI_Tracker_FINAL_v3.xlsx — Excel</div>
+          <div class="excel-actions">
+            <span>AutoSave: On</span>
+            <button id="btn-boss-exit" class="excel-resume-btn">Quay lại Game [B]</button>
+          </div>
+        </div>
+        <div class="excel-ribbon">
+          <span>File</span><span>Home</span><span>Insert</span><span>Page Layout</span><span>Formulas</span><span>Data</span><span>Review</span><span>View</span>
+        </div>
+        <div class="excel-formula">
+          <span class="fx">fx</span>
+          <span>=SUMIFS(D4:D18, B4:B18, "Approved", C4:C18, "&gt;=Q4")</span>
+        </div>
+        <div class="excel-grid-wrap">
+          <table class="excel-table">
+            <thead>
+              <tr>
+                <th></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td><strong>Department</strong></td><td><strong>KPI Initiative</strong></td><td><strong>Quarter</strong></td><td><strong>Budget (USD)</strong></td><td><strong>Status</strong></td><td><strong>Owner</strong></td></tr>
+              <tr><td>2</td><td>Engineering</td><td>Cloud Cost Optimization</td><td>Q4</td><td>$42,500</td><td>On Track</td><td>T. Nguyen</td></tr>
+              <tr><td>3</td><td>Product</td><td>Onboarding Funnel Revamp</td><td>Q4</td><td>$18,200</td><td>Approved</td><td>M. Tran</td></tr>
+              <tr><td>4</td><td>Operations</td><td>Vendor SLA Consolidation</td><td>Q4</td><td>$31,000</td><td>In Review</td><td>L. Pham</td></tr>
+              <tr><td>5</td><td>Marketing</td><td>Enterprise Webinar Series</td><td>Q4</td><td>$24,800</td><td>Approved</td><td>H. Le</td></tr>
+              <tr><td>6</td><td>Data</td><td>BI Warehouse Migration</td><td>Q4</td><td>$56,400</td><td>On Track</td><td>D. Hoang</td></tr>
+              <tr><td>7</td><td>HR</td><td>Hybrid Workspace Ergonomics</td><td>Q4</td><td>$12,900</td><td>Pending</td><td>K. Vo</td></tr>
+              <tr><td>8</td><td>Finance</td><td>Automated Expense Audit</td><td>Q4</td><td>$19,750</td><td>Approved</td><td>Q. Bui</td></tr>
+              <tr><td>9</td><td><strong>TOTAL</strong></td><td></td><td></td><td><strong>$205,550</strong></td><td><strong>87.4%</strong></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
